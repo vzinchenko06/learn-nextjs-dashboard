@@ -1,27 +1,35 @@
-'use client';
+'use client'
 
-import { CustomerField, InvoiceForm } from '@/app/lib/definitions';
+import { CustomerField, InvoiceForm } from '@/app/lib/definitions'
 import {
   CheckIcon,
   ClockIcon,
   CurrencyDollarIcon,
   UserCircleIcon,
-} from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { Button } from '../button';
+} from '@heroicons/react/24/outline'
+import Link from 'next/link'
+import { Button } from '../button'
+import { InvoiceFormState, updateInvoice } from '@/app/lib/actions'
+import { useFormState } from 'react-dom'
+import { ErrorAlert, FieldError } from '@/app/ui/invoices/field-error'
 
-export default function EditInvoiceForm({
+export default function EditInvoiceForm ({
   invoice,
   customers,
 }: {
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id)
+  const initialState = { message: null, errors: {} }
+  const [state, dispatch] = useFormState<InvoiceFormState, FormData>(
+    updateInvoiceWithId, initialState)
+
   return (
-    <form>
+    <form action={dispatch}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Invoice ID */}
-        <input type="hidden" name="id" value={invoice.id} />
+        <input type="hidden" name="id" value={invoice.id}/>
         {/* Customer Name */}
         <div className="mb-4">
           <label htmlFor="customer" className="mb-2 block text-sm font-medium">
@@ -33,6 +41,7 @@ export default function EditInvoiceForm({
               name="customerId"
               className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               defaultValue={invoice.customer_id}
+              aria-describedby="customer-error"
             >
               <option value="" disabled>
                 Select a customer
@@ -43,8 +52,10 @@ export default function EditInvoiceForm({
                 </option>
               ))}
             </select>
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+            <UserCircleIcon
+              className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500"/>
           </div>
+          <FieldError id="customer-error" messages={state.errors?.customerId}/>
         </div>
 
         {/* Invoice Amount */}
@@ -61,18 +72,22 @@ export default function EditInvoiceForm({
                 defaultValue={invoice.amount}
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby="amount-error"
               />
-              <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <CurrencyDollarIcon
+                className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900"/>
             </div>
           </div>
+          <FieldError id="amount-error" messages={state.errors?.amount}/>
         </div>
 
         {/* Invoice Status */}
         <div>
-          <label htmlFor="status" className="mb-2 block text-sm font-medium">
+          <label className="mb-2 block text-sm font-medium">
             Set the invoice status
           </label>
-          <div className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
+          <div
+            className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
             <div className="flex gap-4">
               <div className="flex items-center">
                 <input
@@ -82,12 +97,13 @@ export default function EditInvoiceForm({
                   value="pending"
                   defaultChecked={invoice.status === 'pending'}
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-gray-600"
+                  aria-describedby="status-error"
                 />
                 <label
                   htmlFor="pending"
                   className="ml-2 flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300"
                 >
-                  Pending <ClockIcon className="h-4 w-4" />
+                  Pending <ClockIcon className="h-4 w-4"/>
                 </label>
               </div>
               <div className="flex items-center">
@@ -98,18 +114,21 @@ export default function EditInvoiceForm({
                   value="paid"
                   defaultChecked={invoice.status === 'paid'}
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-gray-600"
+                  aria-describedby="status-error"
                 />
                 <label
                   htmlFor="paid"
                   className="ml-2 flex items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white dark:text-gray-300"
                 >
-                  Paid <CheckIcon className="h-4 w-4" />
+                  Paid <CheckIcon className="h-4 w-4"/>
                 </label>
               </div>
             </div>
           </div>
+          <FieldError id="status-error" messages={state.errors?.status}/>
         </div>
       </div>
+      <ErrorAlert message={state.message}/>
       <div className="mt-6 flex justify-end gap-4">
         <Link
           href="/dashboard/invoices"
@@ -120,5 +139,5 @@ export default function EditInvoiceForm({
         <Button type="submit">Edit Invoice</Button>
       </div>
     </form>
-  );
+  )
 }
